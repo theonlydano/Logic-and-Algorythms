@@ -1,3 +1,5 @@
 public class RDPExeption extends Exception {
-    // Yet to be implemented
+    public RDPExeption(String s) {
+        super(s);
+    }
 }
