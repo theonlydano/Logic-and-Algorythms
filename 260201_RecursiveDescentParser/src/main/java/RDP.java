@@ -27,11 +27,9 @@ public class RDP {
         int openedBracket = -1;
 
         for (int i = 0; i < s.length(); i++) {
-
             char c = s.charAt(i);
 
             switch (c) {
-
                 case '(':
                     if (bracketCount == 0) {
                         openedBracket = i;
@@ -64,7 +62,6 @@ public class RDP {
                     break;
 
                 default:
-
                     if (bracketCount == 0 && (Character.isDigit(c))) {
                         int start = i;
 
@@ -72,9 +69,18 @@ public class RDP {
                             i++;
                         }
 
-                        double num = Double.parseDouble(s.substring(start, i));
+                        double num =
+                                Double.parseDouble(s.substring(start, i));
 
-                        i--;
+// Handle exponent
+                        if (i < s.length() && s.charAt(i) == '^') {
+                            double power =
+                                    evaluateIntern(s.substring(i + 1));
+                            num = Math.pow(num, power);
+                            i = s.length();
+                        } else {
+                            i--;
+                        }
 
                         switch (lastOperator) {
                             case '+': result += num; break;
@@ -82,6 +88,7 @@ public class RDP {
                             case '*': result *= num; break;
                             case '/': result /= num; break;
                         }
+
                     }
             }
         }
