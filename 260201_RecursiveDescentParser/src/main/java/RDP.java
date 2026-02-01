@@ -11,9 +11,8 @@ public class RDP {
     }
 
     public double evaluateIntern(String s) throws RDPExeption {
-
         if (s.isEmpty()) {
-            throw new RDPExeption("Empty string");
+            throw new RDPExeption("Empty String");
         }
 
         if (s.charAt(0) == '+' || s.charAt(0) == '-') {
@@ -22,7 +21,6 @@ public class RDP {
 
         double result = 0;
         char lastOperator = '+';
-
         int bracketCount = 0;
         int openedBracket = -1;
 
@@ -40,15 +38,18 @@ public class RDP {
                 case ')':
                     bracketCount--;
 
+                    if (bracketCount < 0) {
+                        throw new RDPExeption("Missing '('");
+                    }
+
                     if (bracketCount == 0) {
+                        if (i == openedBracket + 1) {
+                            throw new RDPExeption("Empty brackets");
+                        }
 
                         double inner = evaluateIntern(s.substring(openedBracket + 1, i));
-
                         s = s.substring(0, openedBracket) + inner + s.substring(i + 1);
-
-                        i = -1;
-                        lastOperator = '+';
-                        result = 0;
+                        i = openedBracket - 1;
                     }
                     break;
 
@@ -56,26 +57,40 @@ public class RDP {
                 case '-':
                 case '*':
                 case '/':
+                    if (i == 0 || "+-*/^(".indexOf(s.charAt(i - 1)) >= 0) {
+                        throw new RDPExeption("Empty operante");
+                    }
                     if (bracketCount == 0) {
                         lastOperator = c;
                     }
                     break;
 
-                default:
-                    if (bracketCount == 0 && (Character.isDigit(c))) {
-                        int start = i;
+                case '^':
+                    if (i == 0 || "+-*/^(".indexOf(s.charAt(i - 1)) >= 0) {
+                        throw new RDPExeption("Empty operante");
+                    }
+                    break;
 
+                default:
+                    if (Character.isLetter(c)) {
+                        throw new RDPExeption("Unknown variable '" + c + "'");
+                    }
+
+                    if (!Character.isDigit(c) && c != '.') {
+                        throw new RDPExeption("Invalid character '" + c + "'");
+                    }
+
+                    if (bracketCount == 0) {
+
+                        int start = i;
                         while (i < s.length() && (Character.isDigit(s.charAt(i)) || s.charAt(i) == '.')) {
                             i++;
                         }
 
-                        double num =
-                                Double.parseDouble(s.substring(start, i));
+                        double num = Double.parseDouble(s.substring(start, i));
 
-// Handle exponent
                         if (i < s.length() && s.charAt(i) == '^') {
-                            double power =
-                                    evaluateIntern(s.substring(i + 1));
+                            double power = evaluateIntern(s.substring(i + 1));
                             num = Math.pow(num, power);
                             i = s.length();
                         } else {
@@ -89,8 +104,15 @@ public class RDP {
                             case '/': result /= num; break;
                         }
 
+                        if (Double.isInfinite(result) || Double.isNaN(result)) {
+                            throw new RDPExeption("Result is infinite");
+                        }
                     }
             }
+        }
+
+        if (bracketCount != 0) {
+            throw new RDPExeption("Missing ')'");
         }
 
         return result;
